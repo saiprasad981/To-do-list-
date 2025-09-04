@@ -1,267 +1,61 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Firebase To‑Do — Color & Background Showcase</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Firebase To-Do List</title>
   <style>
-    /*
-      ==============================================
-      GLOBAL RESET + THEME
-      ==============================================
-    */
-    :root {
-      --bg: #0f172a;             /* slate-900 */
-      --panel: #111827cc;        /* transparent black for glass effect */
-      --panel-strong: #111827f2;
-      --text: #e5e7eb;           /* gray-200 */
-      --muted: #a1a1aa;          /* zinc-400 */
-      --primary: #8b5cf6;        /* violet-500 */
-      --primary-2: #06b6d4;      /* cyan-500 */
-      --accent: #22c55e;         /* green-500 */
-      --warn: #f59e0b;           /* amber-500 */
-      --danger: #ef4444;         /* red-500 *//* background layering demo variables */
-  --bg-img: radial-gradient(1200px 800px at 10% -10%, rgba(139,92,246,.35), transparent 60%),
-            radial-gradient(1200px 800px at 110% 10%, rgba(6,182,212,.25), transparent 60%),
-            linear-gradient(120deg, rgba(255,255,255,.02), rgba(255,255,255,0));
-
-  --ring: 0 0 0 2px color-mix(in oklab, var(--primary) 60%, white 0%);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #eef2ff;          /* indigo-50 */
-    --panel: #ffffffee;
-    --panel-strong: #ffffffee;
-    --text: #0f172a;         /* slate-900 */
-    --muted: #475569;        /* slate-600 */
-  }
-}
-
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  color: var(--text);
-  background-color: var(--bg);
-  /* Show off multiple background-* properties */
-  background-image: var(--bg-img), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="1" cy="1" r="1" fill="%23ffffff08"/></svg>');
-  background-repeat: no-repeat, repeat;
-  background-size: cover, 32px 32px;   /* different layers -> different sizes */
-  background-attachment: fixed, scroll;/* parallax effect */
-  background-position: center, top left;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: clamp(12px, 2.5vw, 24px);
-}
-
-/* Glass panel */
-.panel {
-  background: var(--panel);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 16px;
-  box-shadow:
-    0 10px 25px -10px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.06);
-}
-
-header.hero {
-  position: relative;
-  padding: clamp(24px, 6vw, 56px);
-  overflow: hidden;
-}
-
-/* Gradient text using background-clip/text */
-.gradient-title {
-  font-size: clamp(28px, 6vw, 56px);
-  font-weight: 800;
-  line-height: 1.1;
-  background: linear-gradient(100deg, var(--primary), var(--primary-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 1px 0 rgba(0,0,0,.4);
-}
-
-.subtitle { color: var(--muted); margin-top: 6px; }
-
-.row { display: grid; gap: 12px; grid-template-columns: 1fr auto; align-items: center; }
-.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-
-input[type="text"], .select, button, .pill {
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.12);
-  padding: 12px 14px;
-  background-color: rgba(17,24,39,.55);
-  color: var(--text);
-  outline: none;
-  transition: .2s ease;
-}
-input[type="text"]:focus, .select:focus, button:focus { box-shadow: var(--ring); }
-
-button {
-  cursor: pointer;
-  font-weight: 600;
-  border: 1px solid color-mix(in oklab, var(--primary) 35%, white 0%);
-  background-image: linear-gradient(180deg, color-mix(in oklab, var(--primary) 35%, black 0%), color-mix(in oklab, var(--primary) 20%, black 0%));
-}
-button:hover { filter: brightness(1.1); }
-.btn-ghost { background: transparent; border-color: rgba(255,255,255,.2); }
-.btn-danger { border-color: var(--danger); background-image: linear-gradient(180deg, var(--danger), #991b1b); }
-.btn-accent { border-color: var(--accent); background-image: linear-gradient(180deg, var(--accent), #065f46); }
-
-.list { margin-top: 16px; }
-.todo {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
-  padding: 12px; border-radius: 12px; margin-bottom: 10px; background: var(--panel-strong);
-  border: 1px solid rgba(255,255,255,.08);
-}
-.todo.completed { opacity: .75; text-decoration: none; }
-.todo .title { word-break: break-word; }
-.todo .meta { font-size: 12px; color: var(--muted); }
-
-.checkbox {
-  width: 22px; height: 22px; border-radius: 6px; display: grid; place-content: center;
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.3));
-  border: 1px solid rgba(255,255,255,.18);
-}
-.checkbox input { width: 0; height: 0; opacity: 0; position: absolute; }
-
-.color-demo {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 18px;
-}
-.swatch {
-  padding: 14px; border-radius: 14px; border: 1px dashed rgba(255,255,255,.2); background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(0,0,0,.2));
-}
-.swatch code { font-size: 12px; color: var(--muted); }
-
-.footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
-
-/*
-  ==============================================
-  MEDIA QUERIES — “media frames”
-  Demonstrates responsive behavior across sizes
-  ==============================================
-*/
-@media (max-width: 900px) {
-  .row { grid-template-columns: 1fr; }
-  .toolbar { justify-content: space-between; }
-}
-@media (max-width: 500px) {
-  .gradient-title { font-size: 28px; }
-  .todo { grid-template-columns: auto 1fr; }
-  .todo .actions { grid-column: 1 / -1; display: flex; gap: 8px; }
-}
-
-/*
-  Background-origin/clip/size demo box to show more CSS background props in action.
-*/
-.bg-lab {
-  margin-top: 18px;
-  border: 12px double rgba(255,255,255,.2);
-  border-radius: 18px;
-  padding: 18px;
-  color: #111;
-  background-image:
-    linear-gradient(45deg, rgba(255,255,255,.9), rgba(255,255,255,.7)),
-    repeating-linear-gradient(45deg, rgba(139,92,246,.35) 0 10px, rgba(6,182,212,.35) 10px 20px);
-  background-clip: padding-box, border-box; /* layer 1 clipped to padding, layer 2 extends */
-  background-origin: padding-box, border-box;
-  background-size: auto, 20px 20px;
-  background-repeat: no-repeat, repeat;
-}
-
-.pill { background-color: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); }
-
-.hidden { display: none !important; }
-
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    ul { list-style: none; padding: 0; }
+    li {
+      padding: 8px;
+      margin: 4px 0;
+      background: #f0f0f0;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li.completed { text-decoration: line-through; color: gray; }
+    button.delete {
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <header class="hero panel">
-      <h1 class="gradient-title">To‑Do List + Firebase <span class="pill">Realtime</span></h1>
-      <p class="subtitle">A responsive to‑do app that demonstrates <strong>color</strong> & <strong>background</strong> CSS properties (gradients, layers, clip/origin/size, attachments) + Firebase Cloud Firestore persistence.</p><div class="bg-lab">
-    <strong>Background Lab:</strong> This box shows <code>background-image</code> (two layers), <code>background-clip</code>, <code>background-origin</code>, <code>background-size</code>, and <code>repeating-linear-gradient</code>.
-  </div>
-
-  <div class="color-demo">
-    <div class="swatch"><div style="height:36px; border-radius:10px; background-color: tomato"></div><div><small>Named color</small><br><code>background-color: tomato</code></div></div>
-    <div class="swatch"><div style="height:36px; border-radius:10px; background-color: #10b981"></div><div><small>HEX</small><br><code>#10b981</code></div></div>
-    <div class="swatch"><div style="height:36px; border-radius:10px; background-color: rgb(59,130,246)"></div><div><small>RGB</small><br><code>rgb(59,130,246)</code></div></div>
-    <div class="swatch"><div style="height:36px; border-radius:10px; background: linear-gradient(90deg, #8b5cf6, #06b6d4)"></div><div><small>Gradient</small><br><code>linear-gradient(90deg, violet → cyan)</code></div></div>
-    <div class="swatch"><div style="height:36px; border-radius:10px; background: conic-gradient(from 90deg, #22c55e, #f59e0b, #ef4444, #22c55e)"></div><div><small>Conic</small><br><code>conic-gradient(...)</code></div></div>
-    <div class="swatch"><div style="height:36px; border-radius:10px; background: radial-gradient(circle at 20% 20%, #34d399, transparent), radial-gradient(circle at 80% 30%, #60a5fa, transparent), #111827"></div><div><small>Multi‑layer</small><br><code>radial + solid</code></div></div>
-  </div>
-</header>
-
-<main class="panel" style="margin-top:14px; padding:16px;">
-  <!-- Input Row -->
-  <div class="row">
-    <input id="todo-input" type="text" placeholder="Add a task and hit Enter…" autocomplete="off" />
-    <div class="toolbar">
-      <button id="add-btn" title="Add">Add</button>
-      <button id="clear-completed" class="btn-ghost" title="Clear completed">Clear Completed</button>
-      <button id="delete-all" class="btn-danger" title="Delete all">Delete All</button>
-    </div>
-  </div>
-
-  <!-- Filters & Search -->
-  <div class="footer">
-    <div class="toolbar">
-      <select id="filter" class="select" title="Filter">
-        <option value="all">All</option>
-        <option value="active">Active</option>
-        <option value="completed">Completed</option>
-      </select>
-      <select id="sort" class="select" title="Sort">
-        <option value="created-desc">Newest</option>
-        <option value="created-asc">Oldest</option>
-        <option value="alpha-asc">A → Z</option>
-        <option value="alpha-desc">Z → A</option>
-      </select>
-      <span class="pill" id="count">0 items</span>
-    </div>
-    <input id="search" type="text" placeholder="Search…" />
-  </div>
-
-  <section id="list" class="list" aria-live="polite"></section>
-</main>
-
-<footer class="panel" style="margin:14px 0; padding:14px; text-align:center; color: var(--muted);">
-  Built with Firebase Cloud Firestore. Works offline (IndexedDB) and syncs when reconnected.
-</footer>
-
+    <h2>To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Enter a task...">
+    <button id="addBtn">Add Task</button>
+    <ul id="taskList"></ul>
   </div>  <script type="module">
-    // ================================
-    // Firebase (Modular SDK v10+)
-    // ================================
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAnalytics, isSupported as analyticsSupported } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      query,
-      orderBy,
-      onSnapshot,
-      updateDoc,
-      deleteDoc,
-      doc,
-      serverTimestamp,
-      enableIndexedDbPersistence,
-      getDocs
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ---- Paste-in config from the prompt ----
     const firebaseConfig = {
       apiKey: "AIzaSyD4ExkZQJLgIbMEx4HTXsEp7dAR5Ue-TPM",
       authDomain: "hackathon-b062a.firebaseapp.com",
@@ -273,155 +67,51 @@ button:hover { filter: brightness(1.1); }
     };
 
     const app = initializeApp(firebaseConfig);
-    try { if (await analyticsSupported()) getAnalytics(app); } catch (e) { /* ignore */ }
-
     const db = getFirestore(app);
-    enableIndexedDbPersistence(db).catch(() => {/* persistence may already be enabled in another tab */});
+    const todosRef = collection(db, "todos");
 
-    // ================================
-    // DOM Helpers
-    // ================================
-    const $ = s => document.querySelector(s);
-    const listEl = $('#list');
-    const inputEl = $('#todo-input');
-    const addBtn = $('#add-btn');
-    const filterEl = $('#filter');
-    const sortEl = $('#sort');
-    const searchEl = $('#search');
-    const countEl = $('#count');
-    const clearCompletedBtn = $('#clear-completed');
-    const deleteAllBtn = $('#delete-all');
+    const taskInput = document.getElementById("taskInput");
+    const addBtn = document.getElementById("addBtn");
+    const taskList = document.getElementById("taskList");
 
-    const col = collection(db, 'todos');
-
-    let state = { filter: 'all', sort: 'created-desc', search: '' };
-
-    // ================================
-    // RENDER
-    // ================================
-    function renderItem(id, data) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'todo' + (data.completed ? ' completed' : '');
-      wrapper.dataset.id = id;
-
-      wrapper.innerHTML = `
-        <label class="checkbox">
-          <input type="checkbox" ${data.completed ? 'checked' : ''} aria-label="toggle" />
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--accent')}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-        </label>
-        <div>
-          <div class="title" contenteditable="true" spellcheck="false"></div>
-          <div class="meta"></div>
-        </div>
-        <div class="actions">
-          <button class="btn-ghost" data-action="save">Save</button>
-          <button class="btn-danger" data-action="delete">Delete</button>
-        </div>
-      `;
-
-      const titleEl = wrapper.querySelector('.title');
-      titleEl.textContent = data.title;
-      wrapper.querySelector('.meta').textContent = new Date(data.createdAt?.seconds ? data.createdAt.seconds * 1000 : Date.now()).toLocaleString();
-
-      // Events
-      wrapper.querySelector('input[type="checkbox"]').addEventListener('change', async (e) => {
-        await updateDoc(doc(db, 'todos', id), { completed: e.target.checked });
+    async function loadTasks() {
+      taskList.innerHTML = "";
+      const snapshot = await getDocs(todosRef);
+      snapshot.forEach(docSnap => {
+        const task = docSnap.data();
+        const li = document.createElement("li");
+        if (task.completed) li.classList.add("completed");
+        li.innerHTML = `
+          <span>${task.title}</span>
+          <div>
+            <button onclick="toggleComplete('${docSnap.id}', ${task.completed})">✔</button>
+            <button class="delete" onclick="deleteTask('${docSnap.id}')">✖</button>
+          </div>
+        `;
+        taskList.appendChild(li);
       });
-
-      wrapper.querySelector('[data-action="save"]').addEventListener('click', async () => {
-        const newTitle = titleEl.textContent.trim();
-        if (!newTitle) return;
-        await updateDoc(doc(db, 'todos', id), { title: newTitle });
-      });
-
-      wrapper.querySelector('[data-action="delete"]').addEventListener('click', async () => {
-        if (confirm('Delete this to‑do?')) await deleteDoc(doc(db, 'todos', id));
-      });
-
-      return wrapper;
     }
 
-    function applyClientFilters(nodes) {
-      // client-side filtering for search & filter dropdown
-      const query = state.search.toLowerCase();
-      const filtered = nodes.filter(n => {
-        const title = n.data.title.toLowerCase();
-        const matchesSearch = !query || title.includes(query);
-        const matchesFilter = state.filter === 'all' || (state.filter === 'active' && !n.data.completed) || (state.filter === 'completed' && n.data.completed);
-        return matchesSearch && matchesFilter;
-      });
-
-      const sorter = {
-        'created-desc': (a,b) => (b.data.createdAt?.seconds||0) - (a.data.createdAt?.seconds||0),
-        'created-asc':  (a,b) => (a.data.createdAt?.seconds||0) - (b.data.createdAt?.seconds||0),
-        'alpha-asc':    (a,b) => a.data.title.localeCompare(b.data.title),
-        'alpha-desc':   (a,b) => b.data.title.localeCompare(a.data.title)
-      }[state.sort];
-
-      filtered.sort(sorter);
-      return filtered;
-    }
-
-    function renderList(snapshotDocs) {
-      listEl.innerHTML = '';
-      const nodes = snapshotDocs.map(d => ({ id: d.id, data: d.data() }));
-      const filtered = applyClientFilters(nodes);
-      countEl.textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
-      for (const n of filtered) listEl.appendChild(renderItem(n.id, n.data));
-    }
-
-    // ================================
-    // FIRESTORE STREAM
-    // ================================
-    const q = query(col, orderBy('createdAt', 'desc'));
-    onSnapshot(q, (snap) => renderList(snap.docs));
-
-    // ================================
-    // ACTIONS
-    // ================================
-    async function addTodo() {
-      const title = inputEl.value.trim();
-      if (!title) return;
-      inputEl.value = '';
-      await addDoc(col, { title, completed: false, createdAt: serverTimestamp() });
-    }
-
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addTodo();
-    });
-    addBtn.addEventListener('click', addTodo);
-
-    filterEl.addEventListener('change', () => { state.filter = filterEl.value; refreshOnce(); });
-    sortEl.addEventListener('change', () => { state.sort = sortEl.value; refreshOnce(); });
-    searchEl.addEventListener('input', () => { state.search = searchEl.value; refreshOnce(); });
-
-    async function refreshOnce(){
-      // one-time read to re-render with current filters/sort before next snapshot
-      const snap = await getDocs(q);
-      renderList(snap.docs);
-    }
-
-    clearCompletedBtn.addEventListener('click', async () => {
-      const snap = await getDocs(q);
-      const toDelete = snap.docs.filter(d => d.data().completed);
-      if (!toDelete.length) return alert('No completed items.');
-      if (!confirm(`Delete ${toDelete.length} completed item(s)?`)) return;
-      for (const d of toDelete) await deleteDoc(doc(db, 'todos', d.id));
-    });
-
-    deleteAllBtn.addEventListener('click', async () => {
-      const snap = await getDocs(q);
-      if (!snap.size) return;
-      if (!confirm(`Delete ALL ${snap.size} item(s)? This cannot be undone.`)) return;
-      for (const d of snap.docs) await deleteDoc(doc(db, 'todos', d.id));
-    });
-
-    // Accessibility: prevent line breaks in contenteditable
-    document.addEventListener('keydown', (e) => {
-      if (e.target.matches('.title[contenteditable="true"]') && e.key === 'Enter') {
-        e.preventDefault();
-        e.target.blur();
+    async function addTask() {
+      const title = taskInput.value.trim();
+      if (title) {
+        await addDoc(todosRef, { title, completed: false });
+        taskInput.value = "";
+        loadTasks();
       }
-    });
+    }
+
+    window.deleteTask = async (id) => {
+      await deleteDoc(doc(db, "todos", id));
+      loadTasks();
+    };
+
+    window.toggleComplete = async (id, completed) => {
+      await updateDoc(doc(db, "todos", id), { completed: !completed });
+      loadTasks();
+    };
+
+    addBtn.addEventListener("click", addTask);
+    window.onload = loadTasks;
   </script></body>
 </html>
