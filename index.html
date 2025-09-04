@@ -1,183 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Firebase To‑Do (Single File)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root { color-scheme: light dark; }
-    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 24px; display: grid; place-items: start center; }
-    .app { width: 100%; max-width: 640px; }
-    h1 { margin: 0 0 16px; }
-    form { display: flex; gap: 8px; margin-bottom: 16px; }
-    input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; }
-    button { padding: 10px 14px; border: 0; background: #4f46e5; color: #fff; border-radius: 6px; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: default; }
-    ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-    li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; }
-    .title { flex: 1; }
-    .done { text-decoration: line-through; opacity: .6; }
-    .row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .danger { background: #dc2626; }
-    .muted { background: #6b7280; }
-    footer { margin-top: 16px; color: #666; font-size: 14px; }
-    .tip { font-size: 12px; color: #666; margin-top: 8px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase To-Do List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: #4a6fc7;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .input-section {
+            display: flex;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-section input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px 0 0 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .input-section input:focus {
+            border-color: #4a6fc7;
+        }
+        
+        .input-section button {
+            background-color: #4a6fc7;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .input-section button:hover {
+            background-color: #3b5a9f;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .filters button {
+            background: none;
+            border: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+            transition: all 0.3s;
+        }
+        
+        .filters button.active {
+            background-color: #4a6fc7;
+            color: white;
+        }
+        
+        .tasks-container {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task.completed {
+            background-color: #e9f5e9;
+        }
+        
+        .task.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+        
+        .task input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+        
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            word-break: break-word;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #777;
+            transition: color 0.3s;
+        }
+        
+        .task-actions button.edit:hover {
+            color: #4a6fc7;
+        }
+        
+        .task-actions button.delete:hover {
+            color: #ff4757;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        .footer {
+            padding: 15px 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #777;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            .input-section input {
+                border-radius: 6px;
+                margin-bottom: 10px;
+            }
+            
+            .input-section button {
+                border-radius: 6px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <h1>To‑Do List</h1>
-
-    <form id="add-form">
-      <input id="todo-input" type="text" placeholder="Add a task..." required />
-      <button id="add-btn" type="submit">Add</button>
-    </form>
-
-    <div class="row">
-      <button id="show-all" class="muted" type="button">Show All</button>
-      <button id="show-open" class="muted" type="button">Open Only</button>
-      <button id="show-done" class="muted" type="button">Completed</button>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tasks"></i> Firebase To-Do List</h1>
+            <p>Your tasks are saved in the cloud</p>
+        </div>
+        
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Enter a new task...">
+            <button id="addTaskBtn">Add Task</button>
+        </div>
+        
+        <div class="filters">
+            <button class="active" data-filter="all">All</button>
+            <button data-filter="active">Active</button>
+            <button data-filter="completed">Completed</button>
+        </div>
+        
+        <div class="tasks-container" id="tasksList">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>No tasks yet. Add a task to get started!</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Double-click task to edit | Tasks saved to Firebase</p>
+        </div>
     </div>
 
-    <ul id="todo-list"></ul>
+    <!-- Firebase App (core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <footer>
-      Real‑time sync using Firestore onSnapshot. Toggle to complete or delete tasks. [Docs referenced in code comments] [4][2]
-      <div class="tip">During early development, permissive rules can be used but must be tightened before shipping. See comments below. [10][7]</div>
-    </footer>
-  </div>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4ExkZQJLgIbMEx4HTXsEp7dAR5Ue-TPM",
+            authDomain: "hackathon-b062a.firebaseapp.com",
+            projectId: "hackathon-b062a",
+            storageBucket: "hackathon-b062a.firebasestorage.app",
+            messagingSenderId: "813298313319",
+            appId: "1:813298313319:web:6d2cc85a3fe7b35c668cc2",
+            measurementId: "G-GH9EN3J3D4"
+        };
 
-  <script type="module">
-    // Firebase (v9+ modular) via CDN. See official docs for onSnapshot, addDoc, updateDoc, deleteDoc, query, where, orderBy. [4][2]
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, serverTimestamp,
-      onSnapshot, query, orderBy, updateDoc, deleteDoc, doc, where
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-    // Provided config
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4ExkZQJLgIbMEx4HTXsEp7dAR5Ue-TPM",
-      authDomain: "hackathon-b062a.firebaseapp.com",
-      projectId: "hackathon-b062a",
-      storageBucket: "hackathon-b062a.firebasestorage.app",
-      messagingSenderId: "813298313319",
-      appId: "1:813298313319:web:6d2cc85a3fe7b35c668cc2",
-      measurementId: "G-GH9EN3J3D4"
-    };
-
-    // Initialize app and Firestore [2]
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // DOM refs
-    const form = document.getElementById("add-form");
-    const input = document.getElementById("todo-input");
-    const addBtn = document.getElementById("add-btn");
-    const list = document.getElementById("todo-list");
-    const btnAll = document.getElementById("show-all");
-    const btnOpen = document.getElementById("show-open");
-    const btnDone = document.getElementById("show-done");
-
-    let unsubscribe = null;
-    let currentFilter = "ALL";
-
-    // Add a todo [2]
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const title = input.value.trim();
-      if (!title) return;
-      addBtn.disabled = true;
-      try {
-        await addDoc(collection(db, "todos"), {
-          title,
-          completed: false,
-          createdAt: serverTimestamp(),
-        }); // addDoc creates an ID [2]
-        input.value = "";
-      } catch (err) {
-        alert(err.message);
-      } finally {
-        addBtn.disabled = false;
-      }
-    });
-
-    // Subscribe to todos with optional filters [4]
-    function watchTodos(filter = "ALL") {
-      if (unsubscribe) unsubscribe();
-
-      let q = query(collection(db, "todos"), orderBy("createdAt", "desc")); // orderBy [2]
-      if (filter === "OPEN") q = query(collection(db, "todos"), where("completed", "==", false), orderBy("createdAt", "desc")); // where [2]
-      if (filter === "DONE") q = query(collection(db, "todos"), where("completed", "==", true), orderBy("createdAt", "desc"));  // where [2]
-
-      unsubscribe = onSnapshot(q, (snap) => {
-        list.innerHTML = "";
-        snap.forEach((d) => {
-          const li = document.createElement("li");
-          const data = d.data();
-
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = !!data.completed;
-          checkbox.addEventListener("change", async () => {
-            try {
-              await updateDoc(doc(db, "todos", d.id), { completed: checkbox.checked }); // updateDoc [2]
-            } catch (err) {
-              alert(err.message);
-            }
-          });
-
-          const span = document.createElement("span");
-          span.className = "title" + (data.completed ? " done" : "");
-          span.textContent = data.title || "(untitled)";
-
-          const del = document.createElement("button");
-          del.textContent = "Delete";
-          del.className = "danger";
-          del.addEventListener("click", async () => {
-            if (!confirm("Delete this task?")) return;
-            try {
-              await deleteDoc(doc(db, "todos", d.id)); // deleteDoc [2]
-            } catch (err) {
-              alert(err.message);
-            }
-          });
-
-          li.appendChild(checkbox);
-          li.appendChild(span);
-          li.appendChild(del);
-          list.appendChild(li);
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Reference to the tasks collection
+        const tasksRef = db.collection("tasks");
+        
+        // DOM elements
+        const taskInput = document.getElementById('taskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const tasksList = document.getElementById('tasksList');
+        const filterButtons = document.querySelectorAll('.filters button');
+        
+        let currentFilter = 'all';
+        let tasks = [];
+        let editTaskId = null;
+        
+        // Add task event listener
+        addTaskBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
         });
-      }, (err) => {
-        console.error(err);
-        alert("Listener error: " + err.message);
-      }); // onSnapshot real-time listener [4]
-    }
-
-    // Filter buttons
-    btnAll.addEventListener("click", () => { currentFilter = "ALL"; watchTodos(currentFilter); });
-    btnOpen.addEventListener("click", () => { currentFilter = "OPEN"; watchTodos(currentFilter); });
-    btnDone.addEventListener("click", () => { currentFilter = "DONE"; watchTodos(currentFilter); });
-
-    // Start
-    watchTodos(currentFilter);
-
-    /*
-      Firestore rules notes:
-      - For quick local prototyping you might temporarily allow reads/writes, then lock down.
-      - Example structure and basics: https://cloud.google.com/firestore/native/docs/security/rules-structure [10]
-      - Why not to use allow read, write: if true in production: https://dev.to/sometimescasey/firebase-cloud-firestore-permissions-don-t-do-allow-read-write-if-true-121b [7]
-
-      Dev-only permissive rule (do NOT ship):
-      rules_version = '2';
-      service cloud.firestore {
-        match /databases/{database}/documents {
-          match /todos/{doc} {
-            allow read, write: if true;
-          }
+        
+        // Filter event listeners
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Set current filter and render tasks
+                currentFilter = button.getAttribute('data-filter');
+                renderTasks();
+            });
+        });
+        
+        // Function to add a new task
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            
+            if (taskText === '') return;
+            
+            if (editTaskId) {
+                // Update existing task
+                tasksRef.doc(editTaskId).update({
+                    text: taskText
+                });
+                
+                editTaskId = null;
+                addTaskBtn.textContent = 'Add Task';
+            } else {
+                // Add new task
+                tasksRef.add({
+                    text: taskText,
+                    completed: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            
+            taskInput.value = '';
         }
-      }
-    */
-  </script>
+        
+        // Function to render tasks based on filter
+        function renderTasks() {
+            // Clear the tasks list
+            tasksList.innerHTML = '';
+            
+            // Check if there are no tasks
+            if (tasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No tasks yet. Add a task to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Filter tasks based on current filter
+            let filteredTasks = tasks;
+            
+            if (currentFilter === 'active') {
+                filteredTasks = tasks.filter(task => !task.completed);
+            } else if (currentFilter === 'completed') {
+                filteredTasks = tasks.filter(task => task.completed);
+            }
+            
+            // Check if filtered tasks are empty
+            if (filteredTasks.length === 0) {
+                let message = '';
+                if (currentFilter === 'active') {
+                    message = 'No active tasks. Great job!';
+                } else if (currentFilter === 'completed') {
+                    message = 'No completed tasks yet.';
+                } else {
+                    message = 'No tasks yet. Add a task to get started!';
+                }
+                
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render tasks
+            filteredTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = `task ${task.completed ? 'completed' : ''}`;
+                taskElement.innerHTML = `
+                    <input type="checkbox" ${task.completed ? 'checked' : ''}>
+                    <div class="task-text">${task.text}</div>
+                    <div class="task-actions">
+                        <button class="edit"><i class="fas fa-edit"></i></button>
+                        <button class="delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                
+                // Add event listeners
+                const checkbox = taskElement.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', () => toggleTaskCompletion(task.id));
+                
+                const editBtn = taskElement.querySelector('.edit');
+                editBtn.addEventListener('click', () => editTask(task));
+                
+                const deleteBtn = taskElement.querySelector('.delete');
+                deleteBtn.addEventListener('click', () => deleteTask(task.id));
+                
+                // Double-click to edit
+                taskElement.querySelector('.task-text').addEventListener('dblclick', () => editTask(task));
+                
+                tasksList.appendChild(taskElement);
+            });
+        }
+        
+        // Function to toggle task completion
+        function toggleTaskCompletion(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            tasksRef.doc(taskId).update({
+                completed: !task.completed
+            });
+        }
+        
+        // Function to edit a task
+        function editTask(task) {
+            taskInput.value = task.text;
+            taskInput.focus();
+            editTaskId = task.id;
+            addTaskBtn.textContent = 'Update Task';
+        }
+        
+        // Function to delete a task
+        function deleteTask(taskId) {
+            tasksRef.doc(taskId).delete();
+        }
+        
+        // Real-time listener for tasks
+        tasksRef.orderBy('createdAt').onSnapshot(snapshot => {
+            tasks = [];
+            snapshot.forEach(doc => {
+                tasks.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            renderTasks();
+        }, error => {
+            console.error("Error getting tasks: ", error);
+        });
+    </script>
 </body>
 </html>
